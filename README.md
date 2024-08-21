@@ -1,40 +1,79 @@
-# AWS Data Lakehouse for STEDI Human Balance Analytics - My Project Journey
+# AWS Data Lakehouse for Human Balance Analytics
 
 ## Project Overview
 
-The STEDI team developed a hardware named STEDI Step Trainer that trains users for balance exercises and collects sensor data to train a machine learning algorithm to detect steps. The device comes with a companion mobile app that collects customer data and interacts with device sensors.
+This repository contains the implementation of a data lakehouse solution for the STEDI Step Trainer sensor data. The project focuses on using AWS services and Apache Spark to process and curate data from a motion-sensing device and a mobile app to train a machine learning model to detect steps accurately.
 
-## My Approach
+## Objectives
 
-The task was to use the data from the STEDI Step Trainer sensors and the mobile app, curate them into a data lakehouse solution on AWS, so that Data Scientists can train the learning model. Here's how I approached it:
+1. Extract and curate data from Step Trainers and a companion mobile app.
+2. Utilize AWS Glue, Athena, and S3 to build a scalable data architecture.
+3. Ensure data privacy by processing only data shared for research purposes.
 
-### Data Analysis
+## Technologies Used
 
-I started by understanding the three JSON data sources provided by STEDI - Customer Records, Step Trainer Records, and Accelerometer Records. These records were divided between three separate S3 buckets. 
+**AWS Glue**: Data integration service to prepare and load data.  
+**AWS Athena**: Interactive query service to analyze data in Amazon S3 using standard SQL.  
+**AWS S3**: Object storage service.  
+**Apache Spark**: Unified analytics engine for large-scale data processing.  
+**Python**: Programming language used for AWS Glue scripts.  
 
-### AWS Glue Jobs
+## Key Works:
 
-I created my own S3 directories for `customer_landing`, `step_trainer_landing`, and `accelerometer_landing` zones, and copied the data there as a starting point. I wrote and executed AWS Glue jobs to curate data from these zones. I used AWS Glue to create two Glue tables for two of these landing zones - `customer_landing` and `accelerometer_landing`. I shared the `customer_landing.sql` and `accelerometer_landing.sql` script in this repository.
+### Flowchart for the process:
+![chart](https://github.com/user-attachments/assets/ba049a68-7d06-4042-b61e-9a9a155a938d)
 
-### AWS Athena Queries
+### Data Extraction and Curation
 
-I used AWS Athena to query the tables created in Glue. I took screenshots of each query showing the resulting data, which are available in this repository.
+- **Extract Data**: 
+  - Extract data from three primary sources: `customer_landing`, `step_trainer_landing`, and `accelerometer_landing` zones.
+- **AWS Glue Jobs**: 
+  - Create AWS Glue jobs to sanitize and curate the data.
+- **Curated Data Zones**: 
+  - Create curated data zones (`Trusted Zone` and `Curated Zone`) for further use.
 
-### Data Sanitization
+### Data Lakehouse Setup
 
-To sanitize the data and only store records of customers who agreed to share their data for research purposes, I created two more Glue jobs. These jobs curated the data into `customer_trusted` and `accelerometer_trusted` tables.
+- **Data Storage**: 
+  - Store and process data in AWS S3.
+- **Glue Tables**: 
+  - Create Glue tables for each landing zone and query them using AWS Athena.
+- **Data Privacy**: 
+  - Ensure that only the data from customers who agreed to share their data for research purposes is included in the curated datasets.
 
-### Data Quality Issue
+### Data Quality Assurance
 
-The customer data had a data quality issue with the serial number, which should be a unique identifier for the STEDI Step Trainer. Due to a defect in the fulfillment website, the same 30 serial numbers were used repeatedly for millions of customers. To resolve this, I sanitized the Customer data and created a Glue Table in the Curated Zone, `customers_curated`, that only includes customers who have accelerometer data and agreed to share their data for research.
+- **Data Association**: 
+  - Ensure that the correct customer data is associated with Step Trainer records.
 
-### Glue Studio Jobs
+### Machine Learning Data Preparation
 
-Finally, I created two Glue Studio jobs to:
+- **Aggregated Tables**: 
+  - Create aggregated tables that combine Step Trainer readings and associated accelerometer data for the same timestamp.
+- **Curated Machine Learning Data**: 
+  - Store the results in a `machine_learning_curated` table for use in training machine learning models.
 
-1. Read the Step Trainer IoT data stream and populate a Trusted Zone Glue Table, `step_trainer_trusted`, that contains the Step Trainer Records data for customers who have accelerometer data and have agreed to share their data for research.
-2. Create an aggregated table, `machine_learning_curated`, that has each of the Step Trainer Readings, and the associated accelerometer reading data for the same timestamp, but only for customers who have agreed to share their data.
+ ### Relationship between entities:
+![data](https://github.com/user-attachments/assets/3041b7f9-ddbf-40a5-bffb-2a19a19f0020)
 
-## Final Thoughts
+## AWS Glue Jobs
 
-This project gave me hands-on experience with AWS Glue, Athena, S3, and writing Python scripts using AWS Glue and Glue Studio to build a data lakehouse solution. I had the opportunity to tackle a real-world data quality issue and create a system that ultimately helps in training a machine learning model.
+**customer_trusted.py**: Sanitizes customer data and stores it in the Trusted Zone.
+**accelerometer_trusted.py**: Sanitizes accelerometer data and stores it in the Trusted Zone.
+**customers_curated.py**: Curates customer data that includes only customers with accelerometer data.
+**step_trainer_trusted.py**: Populates the Trusted Zone with Step Trainer records.
+**machine_learning_curated.py**: Creates an aggregated table combining Step Trainer and accelerometer data.
+
+## How to Run the Project
+
+1. Set up S3 Buckets: Create S3 directories for customer_landing, step_trainer_landing, and accelerometer_landing zones. Upload the JSON files to the respective directories.
+
+2. Create Glue Jobs: Use the Python scripts in the scripts/ directory to create AWS Glue jobs. Ensure that the jobs are set up to read from the correct S3 paths.
+
+3. Run Athena Queries: Use the SQL scripts to create and query Glue tables in AWS Athena.
+
+4. Monitor Job Execution: Monitor the Glue jobs and ensure they run successfully by checking the output in the S3 Trusted and Curated zones.
+
+## Conclusion
+
+This project demonstrates how to build a data lakehouse solution using AWS Glue, Python, Spark, and AWS Athena. The curated data is prepared for machine learning purposes, ensuring that only relevant and accurate data is used for training models.
